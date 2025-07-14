@@ -1,0 +1,1182 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ESPlab - Innovación con Arduino y ESP32</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            200: '#bae6fd',
+                            300: '#7dd3fc',
+                            400: '#38bdf8',
+                            500: '#0ea5e9',
+                            600: '#0284c7',
+                            700: '#0369a1',
+                            800: '#075985',
+                            900: '#0c4a6e',
+                        },
+                        dark: {
+                            800: '#1e293b',
+                            900: '#0f172a',
+                        }
+                    },
+                    animation: {
+                        'float': 'float 6s ease-in-out infinite',
+                        'pulse-slow': 'pulse 8s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-20px)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .hero-gradient {
+            background: linear-gradient(135deg, rgba(14, 165, 233, 0.15) 0%, rgba(2, 132, 199, 0.25) 100%);
+        }
+        
+        .code-block {
+            font-family: 'Courier New', monospace;
+            background-color: #1e293b;
+            color: #f8fafc;
+            border-radius: 0.5rem;
+            overflow-x: auto;
+        }
+        
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.3s ease-out;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .project-card {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transform-style: preserve-3d;
+        }
+        
+        .project-card:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        }
+        
+        .project-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(to bottom, transparent 60%, rgba(0,0,0,0.7));
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: 1;
+            border-radius: 0.5rem;
+        }
+        
+        .project-card:hover::before {
+            opacity: 1;
+        }
+        
+        .chip {
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .chip::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(to bottom right, rgba(255,255,255,0.3), rgba(255,255,255,0));
+            transform: rotate(30deg);
+            transition: all 0.3s ease;
+        }
+        
+        .chip:hover::after {
+            left: 100%;
+        }
+        
+        .nav-link {
+            position: relative;
+        }
+        
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background-color: #0ea5e9;
+            transition: width 0.3s ease;
+        }
+        
+        .nav-link:hover::after {
+            width: 100%;
+        }
+        
+        .social-icon {
+            transition: all 0.3s ease;
+            transform-style: preserve-3d;
+        }
+        
+        .social-icon:hover {
+            transform: translateY(-3px) scale(1.1);
+        }
+    </style>
+</head>
+<body class="bg-slate-50 font-sans antialiased">
+    <!-- Floating background elements -->
+    <div class="fixed inset-0 overflow-hidden -z-10">
+        <div class="absolute top-1/4 left-1/4 w-64 h-64 rounded-full bg-primary-400 opacity-10 blur-3xl animate-float"></div>
+        <div class="absolute top-2/3 right-1/3 w-80 h-80 rounded-full bg-primary-600 opacity-10 blur-3xl animate-float animation-delay-2000"></div>
+        <div class="absolute bottom-1/4 right-1/4 w-72 h-72 rounded-full bg-primary-500 opacity-10 blur-3xl animate-float animation-delay-4000"></div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="fixed w-full bg-white/80 backdrop-blur-md shadow-sm z-50">
+        <div class="container mx-auto px-6 py-4">
+            <div class="flex justify-between items-center">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 rounded-lg bg-primary-600 flex items-center justify-center text-white">
+                        <i class="fas fa-microchip text-xl"></i>
+                    </div>
+                    <span class="text-2xl font-bold bg-gradient-to-r from-primary-600 to-primary-400 bg-clip-text text-transparent">ESPlab</span>
+                </div>
+                
+                <div class="hidden md:flex space-x-8 items-center">
+                    <a href="#inicio" class="nav-link text-slate-700 font-medium">Inicio</a>
+                    <a href="#proyectos" class="nav-link text-slate-700 font-medium">Proyectos</a>
+                    <a href="#arduino" class="nav-link text-slate-700 font-medium">Arduino</a>
+                    <a href="#esp32" class="nav-link text-slate-700 font-medium">ESP32</a>
+                    <a href="#contacto" class="px-4 py-2 bg-primary-600 text-white rounded-lg font-medium hover:bg-primary-700 transition">Contacto</a>
+                </div>
+                
+                <button id="menu-btn" class="md:hidden text-slate-700 focus:outline-none">
+                    <i class="fas fa-bars text-2xl"></i>
+                </button>
+            </div>
+            
+            <!-- Mobile menu -->
+            <div id="mobile-menu" class="hidden md:hidden mt-4 pb-4">
+                <div class="flex flex-col space-y-3">
+                    <a href="#inicio" class="px-4 py-2 rounded-lg hover:bg-slate-100 transition">Inicio</a>
+                    <a href="#proyectos" class="px-4 py-2 rounded-lg hover:bg-slate-100 transition">Proyectos</a>
+                    <a href="#arduino" class="px-4 py-2 rounded-lg hover:bg-slate-100 transition">Arduino</a>
+                    <a href="#esp32" class="px-4 py-2 rounded-lg hover:bg-slate-100 transition">ESP32</a>
+                    <a href="#contacto" class="px-4 py-2 bg-primary-600 text-white rounded-lg font-medium hover:bg-primary-700 transition text-center">Contacto</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section id="inicio" class="min-h-screen flex items-center justify-center relative overflow-hidden pt-20">
+        <div class="absolute inset-0 hero-gradient -z-10"></div>
+        <div class="container mx-auto px-6 py-20">
+            <div class="flex flex-col lg:flex-row items-center">
+                <div class="lg:w-1/2 mb-12 lg:mb-0">
+                    <h1 class="text-4xl md:text-6xl font-bold text-slate-800 mb-6 leading-tight">
+                        <span class="bg-gradient-to-r from-primary-600 to-primary-400 bg-clip-text text-transparent">Innovación</span> en electrónica
+                    </h1>
+                    <p class="text-lg md:text-xl text-slate-600 mb-8 max-w-lg">
+                        Descubre el potencial de Arduino y ESP32 con nuestros proyectos prácticos y tutoriales paso a paso.
+                    </p>
+                    <div class="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4">
+                        <a href="#proyectos" class="px-8 py-3 bg-primary-600 text-white rounded-lg font-semibold text-center hover:bg-primary-700 transition transform hover:-translate-y-1 shadow-lg shadow-primary-500/20">
+                            Explorar Proyectos
+                        </a>
+                        <a href="#contacto" class="px-8 py-3 border-2 border-primary-600 text-primary-600 rounded-lg font-semibold text-center hover:bg-primary-50 transition transform hover:-translate-y-1">
+                            <i class="fas fa-comments mr-2"></i> Contactar
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="lg:w-1/2 relative">
+                    <div class="relative max-w-lg mx-auto">
+                        <img src="https://images.unsplash.com/photo-1550751827-4bd374c3f58b?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80" 
+                             alt="Electrónica y programación" class="rounded-2xl shadow-2xl border-8 border-white">
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <a href="#proyectos" class="absolute bottom-10 left-1/2 transform -translate-x-1/2 text-primary-600 animate-bounce">
+            <i class="fas fa-chevron-down text-3xl"></i>
+        </a>
+    </section>
+
+    <!-- Projects Section -->
+    <section id="proyectos" class="py-20 bg-white">
+        <div class="container mx-auto px-6">
+            <div class="text-center mb-16">
+                <span class="inline-block px-3 py-1 text-sm font-semibold text-primary-600 bg-primary-100 rounded-full mb-4">Proyectos</span>
+                <h2 class="text-3xl md:text-4xl font-bold text-slate-800 mb-4">Explora Nuestros Proyectos</h2>
+                <p class="max-w-2xl mx-auto text-lg text-slate-600">
+                    Desde principiantes hasta avanzados, encuentra el proyecto perfecto para tus habilidades.
+                </p>
+            </div>
+            
+            <!-- Filter Chips -->
+            <div class="flex flex-wrap justify-center gap-3 mb-12">
+                <button class="filter-btn px-4 py-2 bg-primary-600 text-white rounded-full font-medium text-sm" data-filter="all">
+                    Todos
+                </button>
+                <button class="filter-btn px-4 py-2 bg-slate-100 text-slate-700 rounded-full font-medium text-sm hover:bg-slate-200" data-filter="arduino">
+                    Arduino
+                </button>
+                <button class="filter-btn px-4 py-2 bg-slate-100 text-slate-700 rounded-full font-medium text-sm hover:bg-slate-200" data-filter="esp32">
+                    ESP32
+                </button>
+            </div>
+            
+            <!-- Projects Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- Project 4 -->
+                <div class="project-card bg-white rounded-xl overflow-hidden shadow-md relative">
+                    <div class="relative h-56 overflow-hidden">
+                        <img src="https://images.unsplash.com/photo-1593062098097-2bfe0ad0c39c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80" 
+                             alt="Control de acceso RFID" class="w-full h-full object-cover transition-transform duration-500">
+                        <div class="absolute inset-0 flex items-end p-4 z-10">
+                            <span class="px-3 py-1 bg-primary-600 text-white text-xs font-semibold rounded-full">Arduino</span>
+                            <span class="ml-2 px-3 py-1 bg-white text-slate-700 text-xs font-semibold rounded-full flex items-center">
+                                <i class="fas fa-clock text-xs mr-1"></i> Intermedio
+                            </span>
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        <h3 class="text-xl font-bold text-slate-800 mb-2">Control de Acceso RFID</h3>
+                        <p class="text-slate-600 mb-4">Sistema de seguridad con lectores RFID y base de datos local.</p>
+                        
+                        <div class="flex justify-between items-center mt-6">
+                            <a href="#" class="text-primary-600 font-medium hover:text-primary-800 flex items-center">
+                                Ver tutorial completo
+                                <i class="fas fa-arrow-right ml-2"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Project 5 -->
+                <div class="project-card bg-white rounded-xl overflow-hidden shadow-md relative">
+                    <div class="relative h-56 overflow-hidden">
+                        <img src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80" 
+                             alt="Sistema de iluminación inteligente" class="w-full h-full object-cover transition-transform duration-500">
+                        <div class="absolute inset-0 flex items-end p-4 z-10">
+                            <span class="px-3 py-1 bg-green-600 text-white text-xs font-semibold rounded-full">ESP32</span>
+                            <span class="ml-2 px-3 py-1 bg-white text-slate-700 text-xs font-semibold rounded-full flex items-center">
+                                <i class="fas fa-clock text-xs mr-1"></i> Avanzado
+                            </span>
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        <h3 class="text-xl font-bold text-slate-800 mb-2">Iluminación Inteligente</h3>
+                        <p class="text-slate-600 mb-4">Controla las luces de tu hogar desde cualquier lugar con WiFi.</p>
+                        
+                        <div class="flex justify-between items-center mt-6">
+                            <a href="#" class="text-primary-600 font-medium hover:text-primary-800 flex items-center">
+                                Ver tutorial completo
+                                <i class="fas fa-arrow-right ml-2"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Project 6 -->
+                <div class="project-card bg-white rounded-xl overflow-hidden shadow-md relative">
+                    <div class="relative h-56 overflow-hidden">
+                        <img src="https://images.unsplash.com/photo-1518770660439-4636190af475?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80" 
+                             alt="Estación de monitoreo ambiental" class="w-full h-full object-cover transition-transform duration-500">
+                        <div class="absolute inset-0 flex items-end p-4 z-10">
+                            <span class="px-3 py-1 bg-green-600 text-white text-xs font-semibold rounded-full">ESP32</span>
+                            <span class="ml-2 px-3 py-1 bg-white text-slate-700 text-xs font-semibold rounded-full flex items-center">
+                                <i class="fas fa-clock text-xs mr-1"></i> Intermedio
+                            </span>
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        <h3 class="text-xl font-bold text-slate-800 mb-2">Monitoreo Ambiental</h3>
+                        <p class="text-slate-600 mb-4">Mide calidad del aire, temperatura y humedad en tiempo real.</p>
+                        
+                        <div class="flex justify-between items-center mt-6">
+                            <a href="#" class="text-primary-600 font-medium hover:text-primary-800 flex items-center">
+                                Ver tutorial completo
+                                <i class="fas fa-arrow-right ml-2"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <!-- Project 1 -->
+                <div class="project-card bg-white rounded-xl overflow-hidden shadow-md relative">
+                    <div class="relative h-56 overflow-hidden">
+                        <img src="https://images.unsplash.com/photo-1627855437693-dcc7b0e1bccd?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80" 
+                             alt="Sistema de riego automático" class="w-full h-full object-cover transition-transform duration-500">
+                        <div class="absolute inset-0 flex items-end p-4 z-10">
+                            <span class="px-3 py-1 bg-primary-600 text-white text-xs font-semibold rounded-full">Arduino</span>
+                            <span class="ml-2 px-3 py-1 bg-white text-slate-700 text-xs font-semibold rounded-full flex items-center">
+                                <i class="fas fa-clock text-xs mr-1"></i> Intermedio
+                            </span>
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        <h3 class="text-xl font-bold text-slate-800 mb-2">Sistema de Riego Automático</h3>
+                        <p class="text-slate-600 mb-4">Controla el riego de tus plantas basado en la humedad del suelo.</p>
+                        
+                        <!-- Tabs -->
+                        <div class="mb-4 border-b border-slate-200">
+                            <div class="flex flex-wrap -mb-px">
+                                <button class="tab-btn mr-2 py-2 px-4 font-medium text-xs border-b-2 border-primary-600 text-primary-600" data-tab="tab1-1">
+                                    Materiales
+                                </button>
+                                <button class="tab-btn mr-2 py-2 px-4 font-medium text-xs border-b-2 border-transparent hover:text-primary-600 hover:border-primary-300" data-tab="tab1-2">
+                                    Conexiones
+                                </button>
+                                <button class="tab-btn py-2 px-4 font-medium text-xs border-b-2 border-transparent hover:text-primary-600 hover:border-primary-300" data-tab="tab1-3">
+                                    Código
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Tab Content -->
+                        <div id="tab1-1" class="tab-content active">
+                            <ul class="space-y-2 text-sm text-slate-700">
+                                <li class="flex items-center">
+                                    <i class="fas fa-check-circle text-primary-600 mr-2"></i> Arduino Uno
+                                </li>
+                                <li class="flex items-center">
+                                    <i class="fas fa-check-circle text-primary-600 mr-2"></i> Sensor de humedad del suelo
+                                </li>
+                                <li class="flex items-center">
+                                    <i class="fas fa-check-circle text-primary-600 mr-2"></i> Módulo relé
+                                </li>
+                                <li class="flex items-center">
+                                    <i class="fas fa-check-circle text-primary-600 mr-2"></i> Bomba de agua pequeña
+                                </li>
+                                <li class="flex items-center">
+                                    <i class="fas fa-check-circle text-primary-600 mr-2"></i> Fuente de alimentación 12V
+                                </li>
+                            </ul>
+                        </div>
+                        
+                        <div id="tab1-2" class="tab-content">
+                            <img src="https://www.circuito.io/blog/content/images/2021/01/soil-moisture-sensor-arduino-circuit.png" 
+                                 alt="Diagrama de conexiones" class="w-full rounded border border-slate-200">
+                        </div>
+                        
+                        <div id="tab1-3" class="tab-content">
+                            <div class="code-block p-4 text-sm">
+                                <pre>// Código para sistema de riego automático
+const int sensorPin = A0;
+const int relayPin = 7;
+int moistureLevel = 0;
+
+void setup() {
+  pinMode(relayPin, OUTPUT);
+  Serial.begin(9600);
+}
+
+void loop() {
+  moistureLevel = analogRead(sensorPin);
+  Serial.print("Humedad: ");
+  Serial.println(moistureLevel);
+  
+  if (moistureLevel > 700) {  // Si el suelo está seco
+    digitalWrite(relayPin, HIGH);  // Activa la bomba
+    delay(2000);  // Riega por 2 segundos
+    digitalWrite(relayPin, LOW);
+  }
+  delay(1000);  // Espera 1 segundo entre lecturas
+}</pre>
+                            </div>
+                        </div>
+                        
+                        <div class="flex justify-between items-center mt-6">
+                            <a href="https://www.instructables.com/Basic-Arduino-Based-Automatic-Plant-Watering-System/" target="_blank" class="text-primary-600 font-medium hover:text-primary-800 flex items-center">
+                                Ver tutorial completo
+                                <i class="fas fa-arrow-right ml-2"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Project 2 -->
+                <div class="project-card bg-white rounded-xl overflow-hidden shadow-md relative">
+                    <div class="relative h-56 overflow-hidden">
+                        <img src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80" 
+                             alt="Estación meteorológica IoT" class="w-full h-full object-cover transition-transform duration-500">
+                        <div class="absolute inset-0 flex items-end p-4 z-10">
+                            <span class="px-3 py-1 bg-green-600 text-white text-xs font-semibold rounded-full">ESP32</span>
+                            <span class="ml-2 px-3 py-1 bg-white text-slate-700 text-xs font-semibold rounded-full flex items-center">
+                                <i class="fas fa-clock text-xs mr-1"></i> Avanzado
+                            </span>
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        <h3 class="text-xl font-bold text-slate-800 mb-2">Estación Meteorológica IoT</h3>
+                        <p class="text-slate-600 mb-4">Mide temperatura, humedad y presión atmosférica y envíalos a la nube.</p>
+                        
+                        <!-- Tabs -->
+                        <div class="mb-4 border-b border-slate-200">
+                            <div class="flex flex-wrap -mb-px">
+                                <button class="tab-btn mr-2 py-2 px-4 font-medium text-xs border-b-2 border-primary-600 text-primary-600" data-tab="tab2-1">
+                                    Materiales
+                                </button>
+                                <button class="tab-btn mr-2 py-2 px-4 font-medium text-xs border-b-2 border-transparent hover:text-primary-600 hover:border-primary-300" data-tab="tab2-2">
+                                    Conexiones
+                                </button>
+                                <button class="tab-btn py-2 px-4 font-medium text-xs border-b-2 border-transparent hover:text-primary-600 hover:border-primary-300" data-tab="tab2-3">
+                                    Código
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Tab Content -->
+                        <div id="tab2-1" class="tab-content active">
+                            <ul class="space-y-2 text-sm text-slate-700">
+                                <li class="flex items-center">
+                                    <i class="fas fa-check-circle text-primary-600 mr-2"></i> ESP32
+                                </li>
+                                <li class="flex items-center">
+                                    <i class="fas fa-check-circle text-primary-600 mr-2"></i> Sensor BME280
+                                </li>
+                                <li class="flex items-center">
+                                    <i class="fas fa-check-circle text-primary-600 mr-2"></i> Pantalla OLED 0.96"
+                                </li>
+                                <li class="flex items-center">
+                                    <i class="fas fa-check-circle text-primary-600 mr-2"></i> Batería LiPo 3.7V
+                                </li>
+                                <li class="flex items-center">
+                                    <i class="fas fa-check-circle text-primary-600 mr-2"></i> Cargador de batería
+                                </li>
+                            </ul>
+                        </div>
+                        
+                        <div id="tab2-2" class="tab-content">
+                            <img src="https://lastminuteengineers.com/wp-content/uploads/2021/07/ESP32-BME280-OLED-Circuit-Diagram.png" 
+                                 alt="Diagrama de conexiones" class="w-full rounded border border-slate-200">
+                        </div>
+                        
+                        <div id="tab2-3" class="tab-content">
+                            <div class="code-block p-4 text-sm">
+                                <pre>#include <Wire.h>
+#include <Adafruit_BME280.h>
+#include <Adafruit_SSD1306.h>
+#include <WiFi.h>
+#include <HTTPClient.h>
+
+Adafruit_BME280 bme;
+Adafruit_SSD1306 display(128, 64, &Wire, -1);
+
+const char* ssid = "tu_SSID";
+const char* password = "tu_PASSWORD";
+const char* server = "api.thingspeak.com";
+String apiKey = "TU_API_KEY";
+
+void setup() {
+  Serial.begin(115200);
+  
+  if(!bme.begin(0x76)) {
+    Serial.println("Error con el sensor BME280");
+    while(1);
+  }
+  
+  display.begin(SSD1306_SWITCHCAPVCC, 0x3C);
+  display.clearDisplay();
+  
+  WiFi.begin(ssid, password);
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+}
+
+void loop() {
+  float temp = bme.readTemperature();
+  float hum = bme.readHumidity();
+  float pres = bme.readPressure() / 100.0F;
+  
+  // Mostrar en pantalla OLED
+  display.clearDisplay();
+  display.setTextSize(1);
+  display.setTextColor(WHITE);
+  display.setCursor(0,0);
+  display.print("Temp: "); display.print(temp); display.println(" C");
+  display.print("Hum: "); display.print(hum); display.println(" %");
+  display.print("Pres: "); display.print(pres); display.println(" hPa");
+  display.display();
+  
+  // Enviar a ThingSpeak
+  if(WiFi.status()== WL_CONNECTED){
+    HTTPClient http;
+    String url = "http://" + String(server) + "/update?api_key=" + apiKey;
+    url += "&field1=" + String(temp);
+    url += "&field2=" + String(hum);
+    url += "&field3=" + String(pres);
+    
+    http.begin(url);
+    int httpCode = http.GET();
+    http.end();
+  }
+  
+  delay(30000); // Espera 30 segundos
+}</pre>
+                            </div>
+                        </div>
+                        
+                        <div class="flex justify-between items-center mt-6">
+                            <a href="https://randomnerdtutorials.com/esp32-weather-station-webserver/" target="_blank" class="text-primary-600 font-medium hover:text-primary-800 flex items-center">
+                                Ver tutorial completo
+                                <i class="fas fa-arrow-right ml-2"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Project 3 -->
+                <div class="project-card bg-white rounded-xl overflow-hidden shadow-md relative">
+                    <div class="relative h-56 overflow-hidden">
+                        <img src="https://images.unsplash.com/photo-1603732551681-2e91159b9dc2?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80" 
+                             alt="Robot seguidor de línea" class="w-full h-full object-cover transition-transform duration-500">
+                        <div class="absolute inset-0 flex items-end p-4 z-10">
+                            <span class="px-3 py-1 bg-primary-600 text-white text-xs font-semibold rounded-full">Arduino</span>
+                            <span class="ml-2 px-3 py-1 bg-white text-slate-700 text-xs font-semibold rounded-full flex items-center">
+                                <i class="fas fa-clock text-xs mr-1"></i> Intermedio
+                            </span>
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        <h3 class="text-xl font-bold text-slate-800 mb-2">Robot Seguidor de Línea</h3>
+                        <p class="text-slate-600 mb-4">Un robot autónomo que sigue una línea negra sobre superficie clara.</p>
+                        
+                        <!-- Tabs -->
+                        <div class="mb-4 border-b border-slate-200">
+                            <div class="flex flex-wrap -mb-px">
+                                <button class="tab-btn mr-2 py-2 px-4 font-medium text-xs border-b-2 border-primary-600 text-primary-600" data-tab="tab3-1">
+                                    Materiales
+                                </button>
+                                <button class="tab-btn mr-2 py-2 px-4 font-medium text-xs border-b-2 border-transparent hover:text-primary-600 hover:border-primary-300" data-tab="tab3-2">
+                                    Conexiones
+                                </button>
+                                <button class="tab-btn py-2 px-4 font-medium text-xs border-b-2 border-transparent hover:text-primary-600 hover:border-primary-300" data-tab="tab3-3">
+                                    Código
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Tab Content -->
+                        <div id="tab3-1" class="tab-content active">
+                            <ul class="space-y-2 text-sm text-slate-700">
+                                <li class="flex items-center">
+                                    <i class="fas fa-check-circle text-primary-600 mr-2"></i> Arduino Uno
+                                </li>
+                                <li class="flex items-center">
+                                    <i class="fas fa-check-circle text-primary-600 mr-2"></i> Chasis de robot
+                                </li>
+                                <li class="flex items-center">
+                                    <i class="fas fa-check-circle text-primary-600 mr-2"></i> Puente H L298N
+                                </li>
+                                <li class="flex items-center">
+                                    <i class="fas fa-check-circle text-primary-600 mr-2"></i> Sensores TCRT5000
+                                </li>
+                                <li class="flex items-center">
+                                    <i class="fas fa-check-circle text-primary-600 mr-2"></i> Batería 9V
+                                </li>
+                            </ul>
+                        </div>
+                        
+                        <div id="tab3-2" class="tab-content">
+                            <img src="https://how2electronics.com/wp-content/uploads/2020/04/Line-Follower-Robot-Circuit-Diagram.jpg" 
+                                 alt="Diagrama de conexiones" class="w-full rounded border border-slate-200">
+                        </div>
+                        
+                        <div id="tab3-3" class="tab-content">
+                            <div class="code-block p-4 text-sm">
+                                <pre>// Código para robot seguidor de línea
+#define ENA 5
+#define ENB 6
+#define IN1 7
+#define IN2 8
+#define IN3 9
+#define IN4 11
+
+#define LS 10  // Sensor izquierdo
+#define CS 4   // Sensor central
+#define RS 2   // Sensor derecho
+
+void setup() {
+  pinMode(ENA, OUTPUT);
+  pinMode(ENB, OUTPUT);
+  pinMode(IN1, OUTPUT);
+  pinMode(IN2, OUTPUT);
+  pinMode(IN3, OUTPUT);
+  pinMode(IN4, OUTPUT);
+  
+  pinMode(LS, INPUT);
+  pinMode(CS, INPUT);
+  pinMode(RS, INPUT);
+  
+  analogWrite(ENA, 150);  // Velocidad motor A
+  analogWrite(ENB, 150);  // Velocidad motor B
+}
+
+void loop() {
+  int leftSensor = digitalRead(LS);
+  int centerSensor = digitalRead(CS);
+  int rightSensor = digitalRead(RS);
+  
+  // Línea detectada en sensor central
+  if (centerSensor == LOW) {
+    forward();
+  } 
+  // Línea detectada en sensor izquierdo
+  else if (leftSensor == LOW && rightSensor == HIGH) {
+    left();
+  } 
+  // Línea detectada en sensor derecho
+  else if (rightSensor == LOW && leftSensor == HIGH) {
+    right();
+  } 
+  // No se detecta línea
+  else {
+    stop();
+  }
+}
+
+void forward() {
+  digitalWrite(IN1, HIGH);
+  digitalWrite(IN2, LOW);
+  digitalWrite(IN3, HIGH);
+  digitalWrite(IN4, LOW);
+}
+
+void left() {
+  digitalWrite(IN1, LOW);
+  digitalWrite(IN2, HIGH);
+  digitalWrite(IN3, HIGH);
+  digitalWrite(IN4, LOW);
+}
+
+void right() {
+  digitalWrite(IN1, HIGH);
+  digitalWrite(IN2, LOW);
+  digitalWrite(IN3, LOW);
+  digitalWrite(IN4, HIGH);
+}
+
+void stop() {
+  digitalWrite(IN1, LOW);
+  digitalWrite(IN2, LOW);
+  digitalWrite(IN3, LOW);
+  digitalWrite(IN4, LOW);
+}</pre>
+                            </div>
+                        </div>
+                        
+                        <div class="flex justify-between items-center mt-6">
+                            <a href="https://www.instructables.com/How-to-Make-a-Line-Follower-Robot-Using-Arduino/" target="_blank" class="text-primary-600 font-medium hover:text-primary-800 flex items-center">
+                                Ver tutorial completo
+                                <i class="fas fa-arrow-right ml-2"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="text-center mt-12">
+                <button class="px-8 py-3 bg-white border-2 border-primary-600 text-primary-600 rounded-lg font-semibold hover:bg-primary-50 transition transform hover:-translate-y-1 shadow-md">
+                    <i class="fas fa-plus-circle mr-2"></i> Cargar más proyectos
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Arduino Section -->
+    <section id="arduino" class="py-20 bg-slate-50">
+        <div class="container mx-auto px-6">
+            <div class="flex flex-col lg:flex-row items-center">
+                <div class="lg:w-1/2 mb-12 lg:mb-0 lg:pr-12">
+                    <span class="inline-block px-3 py-1 text-sm font-semibold text-primary-600 bg-primary-100 rounded-full mb-4">Arduino</span>
+                    <h2 class="text-3xl md:text-4xl font-bold text-slate-800 mb-6">Aprende Arduino desde cero</h2>
+                    <p class="text-lg text-slate-600 mb-8">
+                        Arduino es la plataforma perfecta para iniciarte en el mundo de la electrónica y la programación. Con nuestros tutoriales paso a paso, podrás crear proyectos increíbles en poco tiempo.
+                    </p>
+                    <div class="space-y-4 mb-8">
+                        <div class="flex items-start">
+                            <div class="flex-shrink-0 mt-1 mr-4 text-primary-600">
+                                <i class="fas fa-check-circle text-xl"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold text-slate-800">Fácil de aprender</h4>
+                                <p class="text-slate-600">Lenguaje de programación sencillo basado en C++.</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start">
+                            <div class="flex-shrink-0 mt-1 mr-4 text-primary-600">
+                                <i class="fas fa-check-circle text-xl"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold text-slate-800">Gran comunidad</h4>
+                                <p class="text-slate-600">Miles de proyectos y tutoriales disponibles.</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start">
+                            <div class="flex-shrink-0 mt-1 mr-4 text-primary-600">
+                                <i class="fas fa-check-circle text-xl"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold text-slate-800">Versátil</h4>
+                                <p class="text-slate-600">Ideal para prototipos rápidos y proyectos educativos.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 gap-4 mt-6">
+                        <a href="https://www.arduino.cc/en/Guide/Introduction" target="_blank" class="px-4 py-3 bg-slate-800 rounded-lg flex items-center hover:bg-slate-700 transition">
+                            <i class="fas fa-play-circle text-primary-400 mr-3 text-xl"></i>
+                            <span>Introducción a Arduino - Primeros pasos</span>
+                        </a>
+                        <a href="https://www.arduino.cc/en/Tutorial/BuiltInExamples" target="_blank" class="px-4 py-3 bg-slate-800 rounded-lg flex items-center hover:bg-slate-700 transition">
+                            <i class="fas fa-play-circle text-primary-400 mr-3 text-xl"></i>
+                            <span>Programación básica con Arduino IDE</span>
+                        </a>
+                        <a href="https://www.arduino.cc/en/Tutorial/Blink" target="_blank" class="px-4 py-3 bg-slate-800 rounded-lg flex items-center hover:bg-slate-700 transition">
+                            <i class="fas fa-play-circle text-primary-400 mr-3 text-xl"></i>
+                            <span>Control de LEDs y sensores</span>
+                        </a>
+                        <a href="https://www.arduino.cc/en/Tutorial/HomePage" target="_blank" class="px-4 py-3 bg-primary-600 text-white rounded-lg font-semibold hover:bg-primary-700 transition text-center mt-2">
+                            <i class="fas fa-book mr-2"></i> Ver todos los tutoriales
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="lg:w-1/2">
+                    <div class="bg-white p-6 rounded-xl shadow-lg border border-slate-200">
+                        <div class="flex mb-4">
+                            <div class="w-3 h-3 rounded-full bg-red-500 mr-2"></div>
+                            <div class="w-3 h-3 rounded-full bg-yellow-500 mr-2"></div>
+                            <div class="w-3 h-3 rounded-full bg-green-500"></div>
+                        </div>
+                        <div class="code-block p-4">
+                            <pre class="text-sm md:text-base">// Ejemplo básico de Arduino - Parpadeo LED
+void setup() {
+  // Inicializa el pin digital 13 como salida
+  pinMode(13, OUTPUT);
+}
+
+void loop() {
+  digitalWrite(13, HIGH);   // Enciende el LED
+  delay(1000);              // Espera un segundo
+  digitalWrite(13, LOW);    // Apaga el LED
+  delay(1000);              // Espera un segundo
+}</pre>
+                        </div>
+                        <div class="mt-4 flex justify-end">
+                            <button class="px-3 py-1 bg-slate-100 text-slate-700 rounded-full text-sm hover:bg-slate-200">
+                                <i class="far fa-copy mr-1"></i> Copiar código
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ESP32 Section -->
+    <section id="esp32" class="py-20 bg-white">
+        <div class="container mx-auto px-6">
+            <div class="flex flex-col lg:flex-row items-center">
+                <div class="lg:w-1/2 mb-12 lg:mb-0 lg:order-last lg:pl-12">
+                    <span class="inline-block px-3 py-1 text-sm font-semibold text-green-600 bg-green-100 rounded-full mb-4">ESP32</span>
+                    <h2 class="text-3xl md:text-4xl font-bold text-slate-800 mb-6">Potencia tus proyectos con ESP32</h2>
+                    <p class="text-lg text-slate-600 mb-8">
+                        El ESP32 es un microcontrolador con WiFi y Bluetooth integrado, perfecto para proyectos IoT. Aprende a aprovechar todo su potencial con nuestros tutoriales especializados.
+                    </p>
+                    <div class="space-y-4 mb-8">
+                        <div class="flex items-start">
+                            <div class="flex-shrink-0 mt-1 mr-4 text-green-600">
+                                <i class="fas fa-check-circle text-xl"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold text-slate-800">Conectividad integrada</h4>
+                                <p class="text-slate-600">WiFi y Bluetooth en un solo chip.</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start">
+                            <div class="flex-shrink-0 mt-1 mr-4 text-green-600">
+                                <i class="fas fa-check-circle text-xl"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold text-slate-800">Doble núcleo</h4>
+                                <p class="text-slate-600">Mayor potencia de procesamiento.</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start">
+                            <div class="flex-shrink-0 mt-1 mr-4 text-green-600">
+                                <i class="fas fa-check-circle text-xl"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold text-slate-800">Bajo consumo</h4>
+                                <p class="text-slate-600">Ideal para proyectos con batería.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 gap-4 mt-6">
+                        <a href="https://randomnerdtutorials.com/esp32-mqtt-publish-subscribe-arduino-ide/" target="_blank" class="px-4 py-3 bg-green-600 rounded-lg flex items-center hover:bg-green-700 transition">
+                            <i class="fas fa-play-circle text-white mr-3 text-xl"></i>
+                            <span class="text-white">MQTT con ESP32</span>
+                        </a>
+                        <a href="https://randomnerdtutorials.com/esp32-web-server/" target="_blank" class="px-4 py-3 bg-green-600 rounded-lg flex items-center hover:bg-green-700 transition">
+                            <i class="fas fa-play-circle text-white mr-3 text-xl"></i>
+                            <span class="text-white">Servidor Web ESP32</span>
+                        </a>
+                        <a href="https://randomnerdtutorials.com/esp32-esp-now-wi-fi-web-server/" target="_blank" class="px-4 py-3 bg-green-600 rounded-lg flex items-center hover:bg-green-700 transition">
+                            <i class="fas fa-play-circle text-white mr-3 text-xl"></i>
+                            <span class="text-white">ESP-NOW + WiFi</span>
+                        </a>
+                        <a href="https://randomnerdtutorials.com/esp32-thingspeak-publishing-values/" target="_blank" class="px-4 py-3 bg-green-800 text-white rounded-lg font-semibold hover:bg-green-900 transition text-center">
+                            <i class="fas fa-book mr-2"></i> Más proyectos IoT
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="lg:w-1/2 lg:order-first">
+                    <div class="relative">
+                        <img src="https://images.unsplash.com/photo-1627855437693-dcc7b0e1bccd?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80" 
+                             alt="Breadboard con componentes electrónicos" class="rounded-xl shadow-lg w-full">
+                        <div class="absolute -bottom-6 -right-6 bg-white p-4 rounded-xl shadow-md border border-slate-200">
+                            <div class="flex items-center">
+                                <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center text-green-600 mr-3">
+                                    <i class="fas fa-microchip text-xl"></i>
+                                </div>
+                                <div>
+                                    <p class="font-bold text-slate-800">ESP32</p>
+                                    <p class="text-sm text-slate-500">Dual Core</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contacto" class="py-20 bg-slate-900 text-white">
+        <div class="container mx-auto px-6">
+            <div class="text-center mb-16">
+                <span class="inline-block px-3 py-1 text-sm font-semibold text-primary-400 bg-primary-900 rounded-full mb-4">Contacto</span>
+                <h2 class="text-3xl md:text-4xl font-bold mb-4">¿Tienes alguna pregunta?</h2>
+                <p class="max-w-2xl mx-auto text-lg text-slate-400">
+                    Estamos aquí para ayudarte. Envíanos un mensaje y te responderemos lo antes posible.
+                </p>
+            </div>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
+                <div>
+                    <form class="space-y-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label for="name" class="block text-sm font-medium text-slate-300 mb-2">Nombre</label>
+                                <input type="text" id="name" class="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent">
+                            </div>
+                            <div>
+                                <label for="email" class="block text-sm font-medium text-slate-300 mb-2">Email</label>
+                                <input type="email" id="email" class="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent">
+                            </div>
+                        </div>
+                        <div>
+                            <label for="subject" class="block text-sm font-medium text-slate-300 mb-2">Asunto</label>
+                            <input type="text" id="subject" class="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent">
+                        </div>
+                        <div>
+                            <label for="message" class="block text-sm font-medium text-slate-300 mb-2">Mensaje</label>
+                            <textarea id="message" rows="5" class="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"></textarea>
+                        </div>
+                        <button type="submit" class="w-full px-6 py-3 bg-primary-600 text-white font-semibold rounded-lg hover:bg-primary-700 transition transform hover:-translate-y-1 shadow-lg">
+                            Enviar mensaje
+                        </button>
+                    </form>
+                </div>
+                
+                <div>
+                    <div class="bg-slate-800 p-8 rounded-xl h-full">
+                        <h3 class="text-xl font-semibold mb-6">Información de contacto</h3>
+                        
+                        <div class="space-y-6">
+                            <div class="flex items-start">
+                                <div class="flex-shrink-0 mt-1 mr-4 text-primary-400">
+                                    <i class="fas fa-map-marker-alt text-xl"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-medium text-slate-200">Dirección</h4>
+                                    <p class="text-slate-400">Calle de la Electrónica, 123<br>28015 Madrid, España</p>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0 mr-4 text-primary-400">
+                                    <i class="fas fa-envelope text-xl"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-medium text-slate-200">Email</h4>
+                                    <p class="text-slate-400">info@esplab.com</p>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0 mr-4 text-primary-400">
+                                    <i class="fas fa-phone-alt text-xl"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-medium text-slate-200">Teléfono</h4>
+                                    <p class="text-slate-400">+34 91 123 45 67</p>
+                                </div>
+                            </div>
+                            
+                            <div class="pt-6">
+                                <h4 class="font-medium text-slate-200 mb-4">Síguenos en redes</h4>
+                                <div class="flex space-x-4">
+                                    <a href="#" class="social-icon w-12 h-12 bg-slate-700 rounded-full flex items-center justify-center text-white hover:bg-primary-600">
+                                        <i class="fab fa-twitter text-xl"></i>
+                                    </a>
+                                    <a href="#" class="social-icon w-12 h-12 bg-slate-700 rounded-full flex items-center justify-center text-white hover:bg-primary-600">
+                                        <i class="fab fa-instagram text-xl"></i>
+                                    </a>
+                                    <a href="#" class="social-icon w-12 h-12 bg-slate-700 rounded-full flex items-center justify-center text-white hover:bg-primary-600">
+                                        <i class="fab fa-youtube text-xl"></i>
+                                    </a>
+                                    <a href="#" class="social-icon w-12 h-12 bg-slate-700 rounded-full flex items-center justify-center text-white hover:bg-primary-600">
+                                        <i class="fab fa-github text-xl"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-slate-900 text-slate-400 py-12">
+        <div class="container mx-auto px-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
+                <div>
+                    <div class="flex items-center space-x-3 mb-4">
+                        <div class="w-10 h-10 rounded-lg bg-primary-600 flex items-center justify-center text-white">
+                            <i class="fas fa-microchip text-xl"></i>
+                        </div>
+                        <span class="text-2xl font-bold text-white">ESPlab</span>
+                    </div>
+                    <p class="mb-4">Explora el mundo de la electrónica con nuestros proyectos de Arduino y ESP32.</p>
+                    <div class="flex space-x-4">
+                        <a href="#" class="text-slate-400 hover:text-white transition">
+                            <i class="fab fa-twitter text-xl"></i>
+                        </a>
+                        <a href="#" class="text-slate-400 hover:text-white transition">
+                            <i class="fab fa-instagram text-xl"></i>
+                        </a>
+                        <a href="#" class="text-slate-400 hover:text-white transition">
+                            <i class="fab fa-youtube text-xl"></i>
+                        </a>
+                        <a href="#" class="text-slate-400 hover:text-white transition">
+                            <i class="fab fa-github text-xl"></i>
+                        </a>
+                    </div>
+                </div>
+                
+                <div>
+                    <h3 class="text-lg font-semibold text-white mb-4">Proyectos</h3>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="hover:text-white transition">Arduino</a></li>
+                        <li><a href="#" class="hover:text-white transition">ESP32</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h3 class="text-lg font-semibold text-white mb-4">Recursos</h3>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="hover:text-white transition">Tutoriales</a></li>
+                        <li><a href="#" class="hover:text-white transition">Documentación</a></li>
+                        <li><a href="#" class="hover:text-white transition">Blog</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h3 class="text-lg font-semibold text-white mb-4">Legal</h3>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="hover:text-white transition">Términos y condiciones</a></li>
+                        <li><a href="#" class="hover:text-white transition">Política de privacidad</a></li>
+                        <li><a href="#" class="hover:text-white transition">Cookies</a></li>
+                        <li><a href="#" class="hover:text-white transition">Licencias</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="border-t border-slate-800 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center">
+                <p class="mb-4 md:mb-0">© 2025 ESPlab. Todos los derechos reservados.</p>
+                <div class="flex space-x-6">
+                    <a href="#" class="hover:text-white transition">Español</a>
+                    <a href="#" class="hover:text-white transition">English</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Project filtering
+        const filterButtons = document.querySelectorAll('.filter-btn');
+        const projectCards = document.querySelectorAll('.project-card');
+        
+        filterButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                // Update active button styles
+                filterButtons.forEach(btn => {
+                    btn.classList.remove('bg-primary-600', 'text-white');
+                    btn.classList.add('bg-slate-100', 'text-slate-700');
+                });
+                
+                button.classList.remove('bg-slate-100', 'text-slate-700');
+                button.classList.add('bg-primary-600', 'text-white');
+                
+                // Filter projects
+                const filter = button.getAttribute('data-filter');
+                
+                projectCards.forEach(card => {
+                    const isArduino = card.querySelector('.bg-primary-600') !== null;
+                    const isEsp32 = card.querySelector('.bg-green-600') !== null;
+                    
+                    if (filter === 'all' || 
+                        (filter === 'arduino' && isArduino) || 
+                        (filter === 'esp32' && isEsp32)) {
+                        card.style.display = 'block';
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+            });
+        });
+
+        // Mobile menu toggle
+        const menuBtn = document.getElementById('menu-btn');
+        const mobileMenu = document.getElementById('mobile-menu');
+        
+        menuBtn.addEventListener('click', () => {
+            mobileMenu.classList.toggle('hidden');
+            menuBtn.innerHTML = mobileMenu.classList.contains('hidden') ? 
+                '<i class="fas fa-bars text-2xl"></i>' : 
+                '<i class="fas fa-times text-2xl"></i>';
+        });
+        
+        // Tab functionality
+        const tabBtns = document.querySelectorAll('.tab-btn');
+        
+        tabBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const tabId = btn.getAttribute('data-tab');
+                const tabContainer = btn.closest('.project-card').querySelector('.tab-content.active');
+                const nextTab = btn.closest('.project-card').querySelector(`#${tabId}`);
+                
+                // Remove active class from all buttons in this tab group
+                const tabGroup = btn.closest('.flex').querySelectorAll('.tab-btn');
+                tabGroup.forEach(tab => {
+                    tab.classList.remove('border-primary-600', 'text-primary-600');
+                    tab.classList.add('border-transparent');
+                });
+                
+                // Add active class to clicked button
+                btn.classList.add('border-primary-600', 'text-primary-600');
+                btn.classList.remove('border-transparent');
+                
+                // Change tab content
+                tabContainer.classList.remove('active');
+                nextTab.classList.add('active');
+            });
+        });
+        
+        // Smooth scrolling for navigation links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                const targetId = this.getAttribute('href');
+                const targetElement = document.querySelector(targetId);
+                
+                if (targetElement) {
+                    window.scrollTo({
+                        top: targetElement.offsetTop - 80,
+                        behavior: 'smooth'
+                    });
+                    
+                    // Close mobile menu if open
+                    if (!mobileMenu.classList.contains('hidden')) {
+                        mobileMenu.classList.add('hidden');
+                        menuBtn.innerHTML = '<i class="fas fa-bars text-2xl"></i>';
+                    }
+                }
+            });
+        });
+        
+        // Animation on scroll
+        const observerOptions = {
+            threshold: 0.1
+        };
+        
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('animate-fadeIn');
+                }
+            });
+        }, observerOptions);
+        
+        document.querySelectorAll('.project-card, .tab-content').forEach(el => {
+            observer.observe(el);
+        });
+        
+        // Copy code button functionality
+        document.querySelectorAll('.code-block').forEach(block => {
+            const copyBtn = block.nextElementSibling?.querySelector('button');
+            if (copyBtn) {
+                copyBtn.addEventListener('click', () => {
+                    const code = block.querySelector('pre').textContent;
+                    navigator.clipboard.writeText(code);
+                    
+                    // Change button text temporarily
+                    const originalText = copyBtn.innerHTML;
+                    copyBtn.innerHTML = '<i class="fas fa-check mr-1"></i> Copiado';
+                    copyBtn.classList.remove('bg-slate-100');
+                    copyBtn.classList.add('bg-green-100', 'text-green-700');
+                    
+                    setTimeout(() => {
+                        copyBtn.innerHTML = originalText;
+                        copyBtn.classList.add('bg-slate-100');
+                        copyBtn.classList.remove('bg-green-100', 'text-green-700');
+                    }, 2000);
+                });
+            }
+        });
+    </script>
+</body>
+</html>
